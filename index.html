@@ -1,0 +1,1162 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Financial Freedom Calculator & Scenarios</title>
+    <link
+      rel="icon"
+      href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>💰</text></svg>"
+    />
+    <!-- Tailwind CSS for Responsive Design -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: "class",
+      };
+    </script>
+    <style>
+      .accordion-content {
+        max-height: 0;
+        overflow: hidden;
+        transition:
+          max-height 0.3s ease-out,
+          padding 0.3s ease-out;
+      }
+      .accordion-content.open {
+        max-height: 1200px;
+      }
+    </style>
+  </head>
+  <body
+    class="bg-gray-50 dark:bg-gray-900 font-sans min-h-screen p-4 md:p-8 transition-colors duration-200"
+  >
+    <div class="max-w-7xl mx-auto space-y-8">
+      <!-- Main Layout Grid: Divided Equally on Large Screens -->
+      <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-start">
+        <!-- LEFT CONTAINER: Calculator Card -->
+        <div
+          class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 transition-colors duration-200 relative"
+        >
+          <div class="flex justify-between items-start gap-4 mb-6">
+            <div class="space-y-1">
+              <h1 class="text-2xl font-bold text-gray-800 dark:text-white">
+                Financial Freedom Calculator
+              </h1>
+              <p class="text-gray-500 dark:text-gray-400 text-sm">
+                Calculate your financial independence target and projection
+                tables instantly.
+              </p>
+            </div>
+            <button
+              id="themeToggle"
+              onclick="toggleTheme()"
+              class="p-2.5 text-lg rounded-lg bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 shadow-sm hover:bg-gray-200 dark:hover:bg-gray-600 transition duration-200 whitespace-nowrap"
+              aria-label="Toggle Theme"
+            >
+              <!-- Icon dynamically rendered via JS -->
+              ☀️
+            </button>
+          </div>
+
+          <form id="calcForm" class="space-y-4" oninput="calculateAll()">
+            <!-- Monthly Living Expenses -->
+            <div>
+              <label
+                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
+                >Monthly Living Expenses</label
+              >
+              <input
+                type="text"
+                id="expenses"
+                required
+                oninput="formatNumberInput(this)"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+
+            <!-- Inflation -->
+            <div>
+              <label
+                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
+                >Annual Inflation (%)</label
+              >
+              <input
+                type="text"
+                id="inflation"
+                value="7.50"
+                required
+                oninput="formatDecimalInput(this)"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+
+            <!-- Fund Period (Years) -->
+            <div>
+              <label
+                class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
+                >Fund Period (Years)</label
+              >
+              <input
+                type="text"
+                id="fundPeriod"
+                value="10"
+                required
+                oninput="formatNumberInput(this)"
+                class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+              />
+            </div>
+
+            <hr class="border-gray-200 dark:border-gray-700 my-4" />
+
+            <!-- Golden Age Adjustment Section -->
+            <div
+              class="bg-blue-50 dark:bg-gray-700/50 p-4 rounded-xl space-y-3"
+            >
+              <span
+                class="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider"
+                >Optional: Golden Age Adjustment</span
+              >
+              <div>
+                <label
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
+                  >Year of Birth</label
+                >
+                <input
+                  type="text"
+                  id="birthYear"
+                  oninput="formatIntegerOnly(this)"
+                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+              <div>
+                <label
+                  class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"
+                  >Starting the Golden Age (Age Target)</label
+                >
+                <input
+                  type="text"
+                  id="goldenAge"
+                  oninput="formatNumberInput(this)"
+                  class="w-full px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+                />
+              </div>
+            </div>
+          </form>
+
+          <!-- Result Display -->
+          <div
+            id="resultBox"
+            class="mt-6 p-4 bg-green-50 dark:bg-green-950/50 border border-green-200 dark:border-green-900 rounded-xl hidden text-center overflow-hidden"
+          >
+            <h3
+              class="text-sm font-semibold text-green-800 dark:text-green-300 uppercase tracking-wider"
+            >
+              Your Financial Freedom Number
+            </h3>
+            <p
+              id="resultValue"
+              class="text-3xl font-extrabold text-green-700 dark:text-green-400 mt-2 break-all whitespace-normal px-2"
+            >
+              0.00
+            </p>
+            <p
+              id="formulaUsed"
+              class="text-xs text-gray-500 dark:text-gray-400 mt-2 italic"
+            ></p>
+          </div>
+        </div>
+
+        <!-- RIGHT CONTAINER: Formula Explanation & Accordion Panel -->
+        <div
+          class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl border border-gray-100 dark:border-gray-700 text-gray-700 dark:text-gray-300 transition-colors duration-200"
+        >
+          <h2
+            class="text-xl font-bold text-gray-800 dark:text-white mb-6 flex items-center gap-2"
+          >
+            Formula Overview
+          </h2>
+
+          <div class="space-y-4 text-sm leading-relaxed">
+            <!-- Standard Base Formula -->
+            <div>
+              <span
+                class="font-bold text-xs text-blue-600 dark:text-blue-400 block mb-1 uppercase tracking-wider"
+              >
+                Standard Base Formula
+              </span>
+              <div
+                class="text-base font-serif italic text-center my-2 py-2 bg-gray-50 dark:bg-gray-900 rounded-xl text-gray-900 dark:text-white flex items-center justify-center gap-1"
+              >
+                <span>FF = E &times; 12 &times;</span>
+                <span
+                  class="inline-flex flex-col text-center align-middle text-xs"
+                >
+                  <span
+                    class="border-b border-gray-400 dark:border-gray-500 px-1"
+                    >(1 + i)<sup>t</sup> - 1</span
+                  >
+                  <span>i</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Golden Age Formula -->
+            <div>
+              <span
+                class="font-bold text-xs text-indigo-600 dark:text-indigo-400 block mb-1 uppercase tracking-wider"
+              >
+                Golden Age Formula
+              </span>
+              <div
+                class="text-base font-serif italic text-center my-2 py-2 bg-gray-50 dark:bg-gray-900 rounded-xl text-gray-900 dark:text-white flex flex-wrap items-center justify-center gap-1"
+              >
+                <span
+                  >FF = E &times; (1 + i)<sup
+                    >(A - (Y<sub>c</sub> - Y<sub>b</sub>))</sup
+                  >
+                  &times; 12 &times;</span
+                >
+                <span
+                  class="inline-flex flex-col text-center align-middle text-xs"
+                >
+                  <span
+                    class="border-b border-gray-400 dark:border-gray-500 px-1"
+                    >(1 + i)<sup>t</sup> - 1</span
+                  >
+                  <span>i</span>
+                </span>
+              </div>
+            </div>
+
+            <!-- Base Formulas Explanations (Where Section) -->
+            <div class="border-b border-gray-100 dark:border-gray-700 pb-4">
+              <p
+                class="font-semibold text-xs text-gray-500 dark:text-gray-400 mb-1"
+              >
+                Where :
+              </p>
+              <ul
+                class="list-disc list-inside text-xs text-gray-600 dark:text-gray-400 space-y-1 pl-2"
+              >
+                <li>
+                  <span class="font-medium text-gray-800 dark:text-gray-200"
+                    >FF</span
+                  >
+                  = Financial Freedom
+                </li>
+                <li>
+                  <span class="font-medium text-gray-800 dark:text-gray-200"
+                    >E</span
+                  >
+                  = Monthly Living Expenses
+                </li>
+                <li>
+                  <span class="font-medium text-gray-800 dark:text-gray-200"
+                    >i</span
+                  >
+                  = Annual Inflation Rate
+                </li>
+                <li>
+                  <span class="font-medium text-gray-800 dark:text-gray-200"
+                    >t</span
+                  >
+                  = Fund Period (Years)
+                </li>
+                <li>
+                  <span class="font-medium text-gray-800 dark:text-gray-200"
+                    >A</span
+                  >
+                  = Age Target |
+                  <span class="font-medium text-gray-800 dark:text-gray-200"
+                    >Y<sub>c</sub></span
+                  >
+                  = Current Year |
+                  <span class="font-medium text-gray-800 dark:text-gray-200"
+                    >Y<sub>b</sub></span
+                  >
+                  = Year of Birth
+                </li>
+              </ul>
+            </div>
+
+            <!-- ACCORDION SYSTEM FOR TABLES -->
+            <div class="space-y-2 pt-2">
+              <h3 class="font-bold text-gray-800 dark:text-white text-sm mb-3">
+                Scenario Table Logic:
+              </h3>
+
+              <!-- Accordion Item 1 -->
+              <div
+                class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
+              >
+                <button
+                  onclick="toggleAccordion('acc1')"
+                  class="w-full flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-left font-semibold text-xs text-gray-800 dark:text-gray-200"
+                >
+                  <span>Table 1: Annual Golden Days Formula</span>
+                  <span id="acc1-icon">&plus;</span>
+                </button>
+                <div
+                  id="acc1"
+                  class="accordion-content bg-white dark:bg-gray-800 text-xs text-gray-600 dark:text-gray-400 px-4"
+                >
+                  <div class="py-3 space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div
+                        class="text-xs font-serif italic text-center py-2 bg-gray-50 dark:bg-gray-900 rounded-xl text-gray-900 dark:text-white flex items-center justify-center gap-1"
+                      >
+                        <span>LE<sub>ann</sub> = IF &times; </span>
+                        <span
+                          class="inline-flex flex-col text-center align-middle text-[10px]"
+                        >
+                          <span
+                            class="border-b border-gray-400 dark:border-gray-500 px-1"
+                            >E &times; 12</span
+                          >
+                          <span>FF</span>
+                        </span>
+                      </div>
+                      <div
+                        class="text-xs font-serif italic text-center py-2 bg-gray-50 dark:bg-gray-900 rounded-xl text-gray-900 dark:text-white flex items-center justify-center gap-1"
+                      >
+                        <span>FF<sub>ann</sub> = InvF &times; [ 1 + (</span>
+                        <span
+                          class="inline-flex flex-col text-center align-middle text-[10px]"
+                        >
+                          <span
+                            class="border-b border-gray-400 dark:border-gray-500 px-1"
+                            >1 + i</span
+                          >
+                          <span>1 - r<sub>LE</sub></span>
+                        </span>
+                        <span> - 1 ) ]</span>
+                      </div>
+                    </div>
+
+                    <p><strong>Row 1 Base Mapping:</strong></p>
+                    <ul class="list-disc list-inside space-y-1 pl-1">
+                      <li><code>Initial Fund</code> = Financial Freedom</li>
+                      <li>
+                        <code>Living Expenses</code> = Initial Fund &times;
+                        (Expenses &times; 12) / Financial Freedom
+                      </li>
+                      <li>
+                        <code>Investment Fund</code> = Initial Fund - Living
+                        Expenses
+                      </li>
+                      <li>
+                        <code>Final Fund</code> = Investment Fund &times; (1 +
+                        ((1 + Inflation) / (1 - Living Expenses Rate) - 1))
+                      </li>
+                    </ul>
+                    <p class="pt-1">
+                      <strong>Row 2+ Compound Sequence:</strong>
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 pl-1">
+                      <li>
+                        <code>Initial Fund</code> = Previous Row Final Fund
+                      </li>
+                      <li>
+                        <code>Inflation</code> = (Current Living Expenses /
+                        Previous Living Expenses) - 1
+                      </li>
+                    </ul>
+
+                    <p
+                      class="font-semibold text-[11px] text-gray-500 dark:text-gray-400 pt-1"
+                    >
+                      Where :
+                    </p>
+                    <ul
+                      class="list-disc list-inside text-[11px] text-gray-500 dark:text-gray-400 space-y-0.5 pl-2"
+                    >
+                      <li>
+                        <code>LE<sub>ann</sub></code> = Annual Living Expenses
+                      </li>
+                      <li><code>IF</code> = Initial Fund</li>
+                      <li><code>E</code> = Monthly Living Expenses</li>
+                      <li><code>FF</code> = Financial Freedom</li>
+                      <li>
+                        <code>FF<sub>ann</sub></code> = Annual Projected Final
+                        Fund
+                      </li>
+                      <li><code>InvF</code> = Investment Fund</li>
+                      <li><code>i</code> = Annual Inflation Rate</li>
+                      <li>
+                        <code>r<sub>LE</sub></code> = Living Expenses Rate
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Accordion Item 2 -->
+              <div
+                class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
+              >
+                <button
+                  onclick="toggleAccordion('acc2')"
+                  class="w-full flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-left font-semibold text-xs text-gray-800 dark:text-gray-200"
+                >
+                  <span>Table 2: 5-Year Golden Days Formula</span>
+                  <span id="acc2-icon">&plus;</span>
+                </button>
+                <div
+                  id="acc2"
+                  class="accordion-content bg-white dark:bg-gray-800 text-xs text-gray-600 dark:text-gray-400 px-4"
+                >
+                  <div class="py-3 space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div
+                        class="text-xs font-serif italic text-center py-2 bg-gray-50 dark:bg-gray-900 rounded-xl text-gray-900 dark:text-white flex items-center justify-center gap-1"
+                      >
+                        <span>LE<sub>5y</sub> = IF &times; </span>
+                        <span
+                          class="inline-flex flex-col text-center align-middle text-[10px]"
+                        >
+                          <span
+                            class="border-b border-gray-400 dark:border-gray-500 px-1"
+                            >E &times; 12</span
+                          >
+                          <span>FF</span>
+                        </span>
+                        <span> &times; </span>
+                        <span
+                          class="inline-flex flex-col text-center align-middle text-[10px]"
+                        >
+                          <span
+                            class="border-b border-gray-400 dark:border-gray-500 px-1"
+                            >(1 + i)<sup>5</sup> - 1</span
+                          >
+                          <span>i</span>
+                        </span>
+                      </div>
+                      <div
+                        class="text-xs font-serif italic text-center py-2 bg-gray-50 dark:bg-gray-900 rounded-xl text-gray-900 dark:text-white flex items-center justify-center gap-1"
+                      >
+                        <span>FF<sub>5y</sub> = InvF &times; [ 1 + (</span>
+                        <span
+                          class="inline-flex flex-col text-center align-middle text-[10px]"
+                        >
+                          <span
+                            class="border-b border-gray-400 dark:border-gray-500 px-1"
+                            >FF<sub>Year X</sub></span
+                          >
+                          <span>InvF</span>
+                        </span>
+                        <span> - 1 ) ]</span>
+                      </div>
+                    </div>
+
+                    <p><strong>5-Year Block Benchmarking:</strong></p>
+                    <ul class="list-disc list-inside space-y-1 pl-1">
+                      <li>
+                        <code>Initial Fund</code> = Financial Freedom (Row 2
+                        takes from Row 1 Final Fund)
+                      </li>
+                      <li>
+                        <code>Living Expenses</code> = (Initial Fund &times;
+                        ((Expenses &times; 12) / Financial Freedom)) &times; ((1
+                        + Inflation)<sup>5</sup> - 1) / Inflation
+                      </li>
+                      <li>
+                        <code>Investment Fund</code> = Initial Fund - Living
+                        Expenses
+                      </li>
+                      <li>
+                        <code>Final Fund</code> = Investment Fund &times; (1 +
+                        ((Final Fund Year X / Investment Fund) - 1))
+                      </li>
+                      <li>
+                        <code>Difference</code> = (Final Fund / Final Fund Year
+                        X) - 1
+                      </li>
+                    </ul>
+
+                    <p
+                      class="font-semibold text-[11px] text-gray-500 dark:text-gray-400 pt-1"
+                    >
+                      Where :
+                    </p>
+                    <ul
+                      class="list-disc list-inside text-[11px] text-gray-500 dark:text-gray-400 space-y-0.5 pl-2"
+                    >
+                      <li>
+                        <code>LE<sub>5y</sub></code> = Cumulative 5-Year Living
+                        Expenses Block
+                      </li>
+                      <li><code>IF</code> = Initial Fund</li>
+                      <li><code>E</code> = Monthly Living Expenses</li>
+                      <li><code>FF</code> = Financial Freedom</li>
+                      <li><code>i</code> = Annual Inflation Rate</li>
+                      <li>
+                        <code>FF<sub>5y</sub></code> = 5-Year Consolidated Final
+                        Fund Projection Block
+                      </li>
+                      <li><code>InvF</code> = Investment Fund</li>
+                      <li>
+                        <code>FF<sub>Year X</sub></code> = Baseline Final Fund
+                        target matching Year X from Table 1
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Accordion Item 3 -->
+              <div
+                class="border border-gray-200 dark:border-gray-700 rounded-xl overflow-hidden"
+              >
+                <button
+                  onclick="toggleAccordion('acc3')"
+                  class="w-full flex justify-between items-center p-3 bg-gray-50 dark:bg-gray-900 hover:bg-gray-100 dark:hover:bg-gray-800 transition text-left font-semibold text-xs text-gray-800 dark:text-gray-200"
+                >
+                  <span
+                    >Table 3: Another Simulation on 5-Year Golden Days
+                    Formula</span
+                  >
+                  <span id="acc3-icon">&plus;</span>
+                </button>
+                <div
+                  id="acc3"
+                  class="accordion-content bg-white dark:bg-gray-800 text-xs text-gray-600 dark:text-gray-400 px-4"
+                >
+                  <div class="py-3 space-y-3">
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-2">
+                      <div
+                        class="text-xs font-serif italic text-center py-2 bg-gray-50 dark:bg-gray-900 rounded-xl text-gray-900 dark:text-white flex items-center justify-center gap-1"
+                      >
+                        <span>LE<sub>5y</sub> = IF &times; </span>
+                        <span
+                          class="inline-flex flex-col text-center align-middle text-[10px]"
+                        >
+                          <span
+                            class="border-b border-gray-400 dark:border-gray-500 px-1"
+                            >E &times; 12</span
+                          >
+                          <span>FF</span>
+                        </span>
+                        <span> &times; </span>
+                        <span
+                          class="inline-flex flex-col text-center align-middle text-[10px]"
+                        >
+                          <span
+                            class="border-b border-gray-400 dark:border-gray-500 px-1"
+                            >(1 + i)<sup>5</sup> - 1</span
+                          >
+                          <span>i</span>
+                        </span>
+                      </div>
+                      <div
+                        class="text-xs font-serif italic text-center py-2 bg-gray-50 dark:bg-gray-900 rounded-xl text-gray-900 dark:text-white flex items-center justify-center gap-1"
+                      >
+                        <span
+                          >FF<sub>5y</sub> = InvF &times; [ 1 + 2 &times;
+                          (</span
+                        >
+                        <span
+                          class="inline-flex flex-col text-center align-middle text-[10px]"
+                        >
+                          <span
+                            class="border-b border-gray-400 dark:border-gray-500 px-1"
+                            >FF<sub>Year X</sub></span
+                          >
+                          <span>InvF</span>
+                        </span>
+                        <span> - 1 ) ]</span>
+                      </div>
+                    </div>
+
+                    <p>
+                      <strong
+                        >5-Year Double Investment Return Block
+                        Benchmarking:</strong
+                      >
+                    </p>
+                    <ul class="list-disc list-inside space-y-1 pl-1">
+                      <li>
+                        <code>Initial Fund</code> = Financial Freedom (Row 2
+                        takes from Row 1 Final Fund)
+                      </li>
+                      <li>
+                        <code>Living Expenses</code> = (Initial Fund &times;
+                        ((Expenses &times; 12) / Financial Freedom)) &times; ((1
+                        + Inflation)<sup>5</sup> - 1) / Inflation
+                      </li>
+                      <li>
+                        <code>Investment Fund</code> = Initial Fund - Living
+                        Expenses
+                      </li>
+                      <li>
+                        <code>Final Fund</code> = Investment Fund &times; (1 +
+                        (((Final Fund Year X / Investment Fund) - 1) &times; 2))
+                      </li>
+                      <li>
+                        <code>Difference</code> = (Final Fund / Final Fund Year
+                        X) - 1
+                      </li>
+                      <li>
+                        <code>Distribution (Fix Final Fund)</code> = Takes
+                        directly from Table 2 Final Fund
+                      </li>
+                      <li>
+                        <code>Distribution (Aspect 1 & 2)</code> = (Table 3
+                        Final Fund - Table 2 Final Fund) &times; 50%
+                      </li>
+                    </ul>
+
+                    <p
+                      class="font-semibold text-[11px] text-gray-500 dark:text-gray-400 pt-1"
+                    >
+                      Where :
+                    </p>
+                    <ul
+                      class="list-disc list-inside text-[11px] text-gray-500 dark:text-gray-400 space-y-0.5 pl-2"
+                    >
+                      <li>
+                        <code>LE<sub>5y</sub></code> = Cumulative 5-Year Living
+                        Expenses
+                      </li>
+                      <li><code>IF</code> = Initial Fund</li>
+                      <li><code>E</code> = Monthly Living Expenses</li>
+                      <li><code>FF</code> = Financial Freedom</li>
+                      <li><code>i</code> = Annual Inflation Rate</li>
+                      <li>
+                        <code>FF<sub>5y</sub></code> = 5-Year Consolidated Final
+                        Fund Projection Block
+                      </li>
+                      <li><code>InvF</code> = Investment Fund</li>
+                      <li>
+                        <code>FF<sub>Year X</sub></code> = Baseline Final Fund
+                        target matching Year X from Table 1
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Tables Wrapper -->
+      <div id="tablesWrapper" class="hidden space-y-8">
+        <!-- Table Scenario 1 Container -->
+        <div
+          class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700"
+        >
+          <div
+            class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4"
+          >
+            <div>
+              <h2 class="text-xl font-bold text-gray-800 dark:text-white">
+                Scenario Table 1: Annual Golden Days
+              </h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                25-year comprehensive projection
+              </p>
+            </div>
+            <div
+              class="mt-2 md:mt-0 bg-gray-100 dark:bg-gray-700 p-2 rounded-lg text-xs space-y-1 text-gray-800 dark:text-gray-200"
+            >
+              <div>
+                Living Expenses Rate (Annual):
+                <span id="leRateHeader" class="font-bold">0.00%</span>
+              </div>
+              <div>
+                Final Fund Return Rate (Annual):
+                <span id="ffReturnHeader" class="font-bold">0.00%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead class="bg-gray-800 dark:bg-gray-950 text-white">
+                <tr>
+                  <th class="px-4 py-3 text-left font-semibold">Year</th>
+                  <th class="px-4 py-3 text-right font-semibold">
+                    Initial Fund
+                  </th>
+                  <th class="px-4 py-3 text-right font-semibold">
+                    Living Expenses
+                  </th>
+                  <th class="px-4 py-3 text-right font-semibold">
+                    Investment Fund
+                  </th>
+                  <th class="px-4 py-3 text-right font-semibold">Final Fund</th>
+                  <th class="px-4 py-3 text-right font-semibold">Inflation</th>
+                </tr>
+              </thead>
+              <tbody
+                id="tableBody"
+                class="divide-y divide-gray-200 dark:divide-gray-700"
+              ></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Table Scenario 2 Container -->
+        <div
+          class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700"
+        >
+          <div
+            class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4"
+          >
+            <div>
+              <h2 class="text-xl font-bold text-gray-800 dark:text-white">
+                Scenario Table 2: 5-Year Golden Days
+              </h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                5-year block projection based on cumulative period benchmarks.
+              </p>
+            </div>
+            <div
+              class="mt-2 md:mt-0 bg-gray-100 dark:bg-gray-700 p-2 rounded-lg text-xs grid grid-cols-2 gap-x-4 gap-y-1 text-gray-800 dark:text-gray-200"
+            >
+              <div>
+                Living Expenses Rate (Annual):
+                <span id="leRateHeaderT2" class="font-bold">0.00%</span>
+              </div>
+              <div>
+                Living Expenses Rate (Period):
+                <span id="leRatePeriodT2" class="font-bold">0.00%</span>
+              </div>
+              <div>
+                Final Fund Return Rate (Annual):
+                <span id="ffReturnHeaderT2" class="font-bold">0.00%</span>
+              </div>
+              <div>
+                Final Fund Return Rate (Period):
+                <span id="ffReturnPeriodT2" class="font-bold">0.00%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead class="bg-gray-800 dark:bg-gray-950 text-white">
+                <tr>
+                  <th class="px-4 py-3 text-left font-semibold">Year</th>
+                  <th class="px-4 py-3 text-right font-semibold">
+                    Initial Fund
+                  </th>
+                  <th class="px-4 py-3 text-right font-semibold">
+                    Living Expenses
+                  </th>
+                  <th class="px-4 py-3 text-right font-semibold">
+                    Investment Fund
+                  </th>
+                  <th class="px-4 py-3 text-right font-semibold">Final Fund</th>
+                  <th class="px-4 py-3 text-right font-semibold">Difference</th>
+                </tr>
+              </thead>
+              <tbody
+                id="table2Body"
+                class="divide-y divide-gray-200 dark:divide-gray-700"
+              ></tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Table Scenario 3 Container -->
+        <div
+          class="bg-white dark:bg-gray-800 p-6 rounded-2xl shadow-xl overflow-hidden border border-gray-100 dark:border-gray-700"
+        >
+          <div
+            class="flex flex-col md:flex-row justify-between items-start md:items-center mb-4"
+          >
+            <div>
+              <h2 class="text-xl font-bold text-gray-800 dark:text-white">
+                Scenario Table 3: Another Simulation on the 5-Year Golden Days
+              </h2>
+              <p class="text-sm text-gray-500 dark:text-gray-400">
+                5-year block projection using simulated double investment
+                returns.
+              </p>
+            </div>
+            <div
+              class="mt-2 md:mt-0 bg-gray-100 dark:bg-gray-700 p-2 rounded-lg text-xs grid grid-cols-2 gap-x-4 gap-y-1 text-gray-800 dark:text-gray-200"
+            >
+              <div>
+                Living Expenses Rate (Annual):
+                <span id="leRateHeaderT3" class="font-bold">0.00%</span>
+              </div>
+              <div>
+                Living Expenses Rate (Period):
+                <span id="leRatePeriodT3" class="font-bold">0.00%</span>
+              </div>
+              <div>
+                Final Fund Return Rate (Annual):
+                <span id="ffReturnHeaderT3" class="font-bold">0.00%</span>
+              </div>
+              <div>
+                Final Fund Return Rate (Period):
+                <span id="ffReturnPeriodT3" class="font-bold">0.00%</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="overflow-x-auto">
+            <table class="min-w-full text-sm">
+              <thead class="bg-gray-800 dark:bg-gray-950 text-white">
+                <tr>
+                  <th class="px-3 py-3 text-left font-semibold">Year</th>
+                  <th class="px-3 py-3 text-right font-semibold">
+                    Initial Fund
+                  </th>
+                  <th class="px-3 py-3 text-right font-semibold">
+                    Living Expenses
+                  </th>
+                  <th class="px-3 py-3 text-right font-semibold">
+                    Investment Fund
+                  </th>
+                  <th class="px-3 py-3 text-right font-semibold">Final Fund</th>
+                  <th class="px-3 py-3 text-right font-semibold">Difference</th>
+                  <th class="px-3 py-3 text-right font-semibold">
+                    Distribution (Fix Final Fund)
+                  </th>
+                  <th class="px-3 py-3 text-right font-semibold">
+                    Distribution (Aspect 1)
+                  </th>
+                  <th class="px-3 py-3 text-right font-semibold">
+                    Distribution (Aspect 2)
+                  </th>
+                </tr>
+              </thead>
+              <tbody
+                id="table3Body"
+                class="divide-y divide-gray-200 dark:divide-gray-700"
+              ></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
+      function toggleAccordion(id) {
+        const content = document.getElementById(id);
+        const icon = document.getElementById(id + "-icon");
+
+        if (content.classList.contains("open")) {
+          content.classList.remove("open");
+          icon.innerHTML = "&plus;";
+        } else {
+          content.classList.add("open");
+          icon.innerHTML = "&minus;";
+        }
+      }
+
+      if (
+        localStorage.getItem("theme") === "dark" ||
+        (!("theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+
+      // Helper function to update theme icon based on current state
+      function updateThemeIcon() {
+        const toggleBtn = document.getElementById("themeToggle");
+        if (document.documentElement.classList.contains("dark")) {
+          toggleBtn.innerHTML = "🌙";
+        } else {
+          toggleBtn.innerHTML = "☀️";
+        }
+      }
+
+      if (
+        localStorage.getItem("theme") === "dark" ||
+        (!("theme" in localStorage) &&
+          window.matchMedia("(prefers-color-scheme: dark)").matches)
+      ) {
+        document.documentElement.classList.add("dark");
+      } else {
+        document.documentElement.classList.remove("dark");
+      }
+
+      function toggleTheme() {
+        if (document.documentElement.classList.contains("dark")) {
+          document.documentElement.classList.remove("dark");
+          localStorage.setItem("theme", "light");
+        } else {
+          document.documentElement.classList.add("dark");
+          localStorage.setItem("theme", "dark");
+        }
+        updateThemeIcon();
+      }
+
+      function getCleanNumber(id) {
+        const val = document.getElementById(id).value;
+        return parseFloat(val.replace(/,/g, ""));
+      }
+
+      function formatNumberInput(input) {
+        let value = input.value.replace(/[^0-9]/g, "");
+        if (value === "") {
+          input.value = "";
+          return;
+        }
+        input.value = new Intl.NumberFormat("en-US").format(parseInt(value));
+      }
+
+      function formatIntegerOnly(input) {
+        input.value = input.value.replace(/[^0-9]/g, "");
+      }
+
+      function formatDecimalInput(input) {
+        let value = input.value.replace(/[^0-9.]/g, "");
+        const parts = value.split(".");
+        if (parts.length > 2) {
+          value = parts[0] + "." + parts.slice(1).join("");
+        }
+        input.value = value;
+      }
+
+      function calculateAll() {
+        const expenses = getCleanNumber("expenses");
+        const inflationInput = parseFloat(
+          document.getElementById("inflation").value,
+        );
+        const fundPeriod = getCleanNumber("fundPeriod");
+        const birthYear = getCleanNumber("birthYear");
+        const goldenAge = getCleanNumber("goldenAge");
+
+        if (
+          isNaN(expenses) ||
+          isNaN(inflationInput) ||
+          isNaN(fundPeriod) ||
+          inflationInput === 0
+        ) {
+          document.getElementById("resultBox").classList.add("hidden");
+          document.getElementById("tablesWrapper").classList.add("hidden");
+          return;
+        }
+
+        const inflationRateBase = inflationInput / 100;
+        const currentYear = new Date().getFullYear();
+
+        let financialFreedomGoal = 0;
+        let usesGoldenAge = !isNaN(birthYear) && !isNaN(goldenAge);
+
+        const compoundFactor =
+          (Math.pow(1 + inflationRateBase, fundPeriod) - 1) / inflationRateBase;
+
+        if (usesGoldenAge) {
+          const currentAge = currentYear - birthYear;
+          const yearsUntilGoldenAge = goldenAge - currentAge;
+          const goldenAgeFactor = Math.pow(
+            1 + inflationRateBase,
+            yearsUntilGoldenAge,
+          );
+
+          financialFreedomGoal =
+            expenses * goldenAgeFactor * 12 * compoundFactor;
+          document.getElementById("formulaUsed").innerText =
+            "Calculated using Golden Age Adjustment adjusted for inflation.";
+        } else {
+          financialFreedomGoal = expenses * 12 * compoundFactor;
+          document.getElementById("formulaUsed").innerText =
+            "Calculated using Standard Base Formula.";
+        }
+
+        const numFormatter = new Intl.NumberFormat("en-US", {
+          minimumFractionDigits: 0,
+          maximumFractionDigits: 0,
+        });
+        const percentFormatter = new Intl.NumberFormat("en-US", {
+          style: "percent",
+          minimumFractionDigits: 2,
+          maximumFractionDigits: 2,
+        });
+
+        document.getElementById("resultValue").innerText =
+          numFormatter.format(financialFreedomGoal);
+        document.getElementById("resultBox").classList.remove("hidden");
+
+        let t1FinalFunds = [];
+        let t2FinalFunds = [];
+
+        // --- TABLE 1 SCENARIO GENERATION ---
+        const tbody1 = document.getElementById("tableBody");
+        tbody1.innerHTML = "";
+        let currentInitialFund = financialFreedomGoal;
+        const yearlyExpensesRow1 =
+          (currentInitialFund * (expenses * 12)) / financialFreedomGoal;
+        const livingExpensesRate = yearlyExpensesRow1 / currentInitialFund;
+        const finalFundReturnRate =
+          (1 + inflationRateBase) / (1 - livingExpensesRate) - 1;
+
+        document.getElementById("leRateHeader").innerText =
+          percentFormatter.format(livingExpensesRate);
+        document.getElementById("ffReturnHeader").innerText =
+          percentFormatter.format(finalFundReturnRate);
+
+        let previousLivingExpenses = 0;
+        for (let i = 1; i <= 25; i++) {
+          let rowLivingExpenses = currentInitialFund * livingExpensesRate;
+          let rowInflationValue = "";
+          if (i === 1) {
+            rowLivingExpenses =
+              (currentInitialFund * (expenses * 12)) / financialFreedomGoal;
+            rowInflationValue = "-";
+          } else {
+            let calcInflation = rowLivingExpenses / previousLivingExpenses - 1;
+            rowInflationValue = percentFormatter.format(calcInflation);
+          }
+          let rowInvestmentFund = currentInitialFund - rowLivingExpenses;
+          let rowFinalFund = rowInvestmentFund * (1 + finalFundReturnRate);
+          t1FinalFunds.push(rowFinalFund);
+
+          const tr = document.createElement("tr");
+          tr.className =
+            i % 2 === 0
+              ? "bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200"
+              : "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200";
+          tr.innerHTML = `
+                    <td class="px-4 py-2 font-medium text-gray-900 dark:text-white">${i}</td>
+                    <td class="px-4 py-2 text-right">${numFormatter.format(currentInitialFund)}</td>
+                    <td class="px-4 py-2 text-right">${numFormatter.format(rowLivingExpenses)}</td>
+                    <td class="px-4 py-2 text-right">${numFormatter.format(rowInvestmentFund)}</td>
+                    <td class="px-4 py-2 text-right font-semibold text-gray-900 dark:text-white">${numFormatter.format(rowFinalFund)}</td>
+                    <td class="px-4 py-2 text-right">${rowInflationValue}</td>
+                `;
+          tbody1.appendChild(tr);
+          previousLivingExpenses = rowLivingExpenses;
+          currentInitialFund = rowFinalFund;
+        }
+
+        // --- TABLE 2 SCENARIO GENERATION ---
+        const tbody2 = document.getElementById("table2Body");
+        tbody2.innerHTML = "";
+        let t2InitialFund = financialFreedomGoal;
+        const targetYears = [5, 10, 15, 20, 25];
+        const compoundFactor5Year =
+          (Math.pow(1 + inflationRateBase, 5) - 1) / inflationRateBase;
+
+        const periodLivingExpensesRate =
+          livingExpensesRate * compoundFactor5Year;
+
+        // Calculate the factual growth ratio of row 1 (Final Fund / Investment Fund - 1)
+        const t2Row1LivingExpenses =
+          t2InitialFund *
+          ((expenses * 12) / financialFreedomGoal) *
+          compoundFactor5Year;
+        const t2Row1InvestmentFund = t2InitialFund - t2Row1LivingExpenses;
+        const t2Row1FinalFundBenchmark = t1FinalFunds[targetYears[0] - 1];
+        const excelStyleReturnRatePeriodT2 =
+          t2Row1FinalFundBenchmark / t2Row1InvestmentFund - 1;
+        const excelStyleReturnRatePeriodT3 = excelStyleReturnRatePeriodT2 * 2; // Double investment return scenario
+
+        document.getElementById("leRateHeaderT2").innerText =
+          percentFormatter.format(livingExpensesRate);
+        document.getElementById("leRatePeriodT2").innerText =
+          percentFormatter.format(periodLivingExpensesRate);
+        document.getElementById("ffReturnHeaderT2").innerText =
+          percentFormatter.format(finalFundReturnRate);
+        document.getElementById("ffReturnPeriodT2").innerText =
+          percentFormatter.format(excelStyleReturnRatePeriodT2);
+
+        for (let k = 0; k < targetYears.length; k++) {
+          let displayPeriod = k * 5 + 1 + "-" + (k * 5 + 5);
+          let finalFundYearBenchmark = t1FinalFunds[targetYears[k] - 1];
+
+          let t2LivingExpenses =
+            t2InitialFund *
+            ((expenses * 12) / financialFreedomGoal) *
+            compoundFactor5Year;
+          let t2InvestmentFund = t2InitialFund - t2LivingExpenses;
+          let t2FinalFund =
+            t2InvestmentFund *
+            (1 + (finalFundYearBenchmark / t2InvestmentFund - 1));
+          t2FinalFunds.push(t2FinalFund);
+          let t2Difference = t2FinalFund / finalFundYearBenchmark - 1;
+
+          const tr = document.createElement("tr");
+          tr.className =
+            k % 2 === 0
+              ? "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+              : "bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200";
+          tr.innerHTML = `
+                    <td class="px-4 py-3 font-medium text-gray-900 dark:text-white">${displayPeriod}</td>
+                    <td class="px-4 py-3 text-right">${numFormatter.format(t2InitialFund)}</td>
+                    <td class="px-4 py-3 text-right">${numFormatter.format(t2LivingExpenses)}</td>
+                    <td class="px-4 py-3 text-right">${numFormatter.format(t2InvestmentFund)}</td>
+                    <td class="px-4 py-3 text-right font-semibold text-gray-900 dark:text-white">${numFormatter.format(t2FinalFund)}</td>
+                    <td class="px-4 py-3 text-right">${percentFormatter.format(t2Difference)}</td>
+                `;
+          tbody2.appendChild(tr);
+          t2InitialFund = t2FinalFund;
+        }
+
+        // --- TABLE 3 SCENARIO GENERATION ---
+        const tbody3 = document.getElementById("table3Body");
+        tbody3.innerHTML = "";
+        let t3InitialFund = financialFreedomGoal;
+
+        // Calculate Final Fund Return Rate (Annual) for Table 3 accurately (5 Year CAGR from Period Rate)
+        const finalFundReturnRateAnnualT3 =
+          Math.pow(1 + excelStyleReturnRatePeriodT3, 1 / 5) - 1;
+
+        document.getElementById("leRateHeaderT3").innerText =
+          percentFormatter.format(livingExpensesRate);
+        document.getElementById("leRatePeriodT3").innerText =
+          percentFormatter.format(periodLivingExpensesRate);
+        document.getElementById("ffReturnHeaderT3").innerText =
+          percentFormatter.format(finalFundReturnRateAnnualT3);
+        document.getElementById("ffReturnPeriodT3").innerText =
+          percentFormatter.format(excelStyleReturnRatePeriodT3);
+
+        for (let m = 0; m < targetYears.length; m++) {
+          let displayPeriod = m * 5 + 1 + "-" + (m * 5 + 5);
+          let finalFundYearBenchmark = t1FinalFunds[targetYears[m] - 1];
+          let t2RowFinalFund = t2FinalFunds[m];
+
+          let t3LivingExpenses =
+            t3InitialFund *
+            ((expenses * 12) / financialFreedomGoal) *
+            compoundFactor5Year;
+          let t3InvestmentFund = t3InitialFund - t3LivingExpenses;
+
+          let t3FinalFund =
+            t3InvestmentFund *
+            (1 + (finalFundYearBenchmark / t3InvestmentFund - 1) * 2);
+          let t3Difference = t3FinalFund / finalFundYearBenchmark - 1;
+
+          let t3DistributionFix = t2RowFinalFund;
+          let t3DistributionAspect1 = (t3FinalFund - t2RowFinalFund) * 0.5;
+          let t3DistributionAspect2 = (t3FinalFund - t2RowFinalFund) * 0.5;
+
+          const tr = document.createElement("tr");
+          tr.className =
+            m % 2 === 0
+              ? "bg-white dark:bg-gray-800 text-gray-800 dark:text-gray-200"
+              : "bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-200";
+          tr.innerHTML = `
+                    <td class="px-3 py-3 font-medium text-gray-900 dark:text-white">${displayPeriod}</td>
+                    <td class="px-3 py-3 text-right">${numFormatter.format(t3InitialFund)}</td>
+                    <td class="px-3 py-3 text-right">${numFormatter.format(t3LivingExpenses)}</td>
+                    <td class="px-3 py-3 text-right">${numFormatter.format(t3InvestmentFund)}</td>
+                    <td class="px-3 py-3 text-right font-semibold text-gray-900 dark:text-white">${numFormatter.format(t3FinalFund)}</td>
+                    <td class="px-3 py-3 text-right">${percentFormatter.format(t3Difference)}</td>
+                    <td class="px-3 py-3 text-right font-medium">${numFormatter.format(t3DistributionFix)}</td>
+                    <td class="px-3 py-3 text-right font-medium">${numFormatter.format(t3DistributionAspect1)}</td>
+                    <td class="px-3 py-3 text-right font-medium">${numFormatter.format(t3DistributionAspect2)}</td>
+                `;
+          tbody3.appendChild(tr);
+          t3InitialFund = t3DistributionFix;
+        }
+
+        document.getElementById("tablesWrapper").classList.remove("hidden");
+      }
+
+      window.onload = function () {
+        calculateAll();
+      };
+    </script>
+  </body>
+</html>
